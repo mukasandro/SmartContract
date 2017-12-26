@@ -1,3 +1,6 @@
+pragma solidity ^0.4.18;
+
+
 /**
  * @title ERC20Basic
  * @dev Simpler version of ERC20 interface
@@ -5,8 +8,8 @@
  */
 contract ERC20Basic {
   uint256 public totalSupply;
-  function balanceOf(address who) constant returns (uint256);
-  function transfer(address to, uint256 value) returns (bool);
+  function balanceOf(address who) constant public returns (uint256);
+  function transfer(address to, uint256 value) public returns (bool);
   event Transfer(address indexed from, address indexed to, uint256 value);
 }
  
@@ -15,9 +18,9 @@ contract ERC20Basic {
  * @dev see https://github.com/ethereum/EIPs/issues/20
  */
 contract ERC20 is ERC20Basic {
-  function allowance(address owner, address spender) constant returns (uint256);
-  function transferFrom(address from, address to, uint256 value) returns (bool);
-  function approve(address spender, uint256 value) returns (bool);
+  function allowance(address owner, address spender) constant private  returns (uint256);
+  function transferFrom(address from, address to, uint256 value) private returns (bool);
+  function approve(address spender, uint256 value)  private returns (bool);
   event Approval(address indexed owner, address indexed spender, uint256 value);
 }
  
@@ -27,25 +30,25 @@ contract ERC20 is ERC20Basic {
  */
 library SafeMath {
     
-  function mul(uint256 a, uint256 b) internal constant returns (uint256) {
+  function mul(uint256 a, uint256 b) internal pure returns (uint256) {
     uint256 c = a * b;
     assert(a == 0 || c / a == b);
     return c;
   }
  
-  function div(uint256 a, uint256 b) internal constant returns (uint256) {
+  function div(uint256 a, uint256 b) internal pure returns (uint256) {
     // assert(b > 0); // Solidity automatically throws when dividing by 0
     uint256 c = a / b;
     // assert(a == b * c + a % b); // There is no case in which this doesn't hold
     return c;
   }
  
-  function sub(uint256 a, uint256 b) internal constant returns (uint256) {
+  function sub(uint256 a, uint256 b) internal pure returns (uint256) {
     assert(b <= a);
     return a - b;
   }
  
-  function add(uint256 a, uint256 b) internal constant returns (uint256) {
+  function add(uint256 a, uint256 b) internal pure returns (uint256) {
     uint256 c = a + b;
     assert(c >= a);
     return c;
@@ -68,7 +71,7 @@ contract BasicToken is ERC20Basic {
   * @param _to The address to transfer to.
   * @param _value The amount to be transferred.
   */
-  function transfer(address _to, uint256 _value) returns (bool) {
+  function transfer(address _to, uint256 _value) public returns (bool) {
     balances[msg.sender] = balances[msg.sender].sub(_value);
     balances[_to] = balances[_to].add(_value);
     Transfer(msg.sender, _to, _value);
@@ -80,7 +83,7 @@ contract BasicToken is ERC20Basic {
   * @param _owner The address to query the the balance of. 
   * @return An uint256 representing the amount owned by the passed address.
   */
-  function balanceOf(address _owner) constant returns (uint256 balance) {
+  function balanceOf(address _owner) constant public returns (uint256 balance) {
     return balances[_owner];
   }
  
@@ -103,7 +106,7 @@ contract StandardToken is ERC20, BasicToken {
    * @param _to address The address which you want to transfer to
    * @param _value uint256 the amout of tokens to be transfered
    */
-  function transferFrom(address _from, address _to, uint256 _value) returns (bool) {
+  function transferFrom(address _from, address _to, uint256 _value) private returns (bool) {
     var _allowance = allowed[_from][msg.sender];
  
     // Check is not needed because sub(_allowance, _value) will already throw if this condition is not met
@@ -121,7 +124,7 @@ contract StandardToken is ERC20, BasicToken {
    * @param _spender The address which will spend the funds.
    * @param _value The amount of tokens to be spent.
    */
-  function approve(address _spender, uint256 _value) returns (bool) {
+  function approve(address _spender, uint256 _value)private returns (bool) {
  
     // To change the approve amount you first have to reduce the addresses`
     //  allowance to zero by calling `approve(_spender, 0)` if it is not
@@ -140,7 +143,7 @@ contract StandardToken is ERC20, BasicToken {
    * @param _spender address The address which will spend the funds.
    * @return A uint256 specifing the amount of tokens still available for the spender.
    */
-  function allowance(address _owner, address _spender) constant returns (uint256 remaining) {
+  function allowance(address _owner, address _spender) constant private returns (uint256 remaining) {
     return allowed[_owner][_spender];
   }
  
@@ -151,7 +154,7 @@ contract StandardToken is ERC20, BasicToken {
  * @dev The Ownable contract has an owner address, and provides basic authorization control
  * functions, this simplifies the implementation of "user permissions".
  */
-contract Ownable {
+contract Ownable   {
     
   address public owner;
  
@@ -159,14 +162,14 @@ contract Ownable {
    * @dev The Ownable constructor sets the original `owner` of the contract to the sender
    * account.
    */
-  function Ownable() {
+  function Ownable() public {
     owner = msg.sender;
   }
  
   /**
    * @dev Throws if called by any account other than the owner.
    */
-  modifier onlyOwner() {
+  modifier onlyOwner()  {
     require(msg.sender == owner);
     _;
   }
@@ -175,7 +178,7 @@ contract Ownable {
    * @dev Allows the current owner to transfer control of the contract to a newOwner.
    * @param newOwner The address to transfer ownership to.
    */
-  function transferOwnership(address newOwner) onlyOwner {
+  function transferOwnership(address newOwner) public onlyOwner {
     require(newOwner != address(0));      
     owner = newOwner;
   }
@@ -208,7 +211,7 @@ contract MintableToken is StandardToken, Ownable {
    * @param _amount The amount of tokens to mint.
    * @return A boolean that indicates if the operation was successful.
    */
-  function mint(address _to, uint256 _amount) onlyOwner canMint returns (bool) {
+  function mint(address _to, uint256 _amount) onlyOwner public canMint returns (bool) {
     totalSupply = totalSupply.add(_amount);
     balances[_to] = balances[_to].add(_amount);
     Mint(_to, _amount);
@@ -219,7 +222,7 @@ contract MintableToken is StandardToken, Ownable {
    * @dev Function to stop minting new tokens.
    * @return True if the operation was successful.
    */
-  function finishMinting() onlyOwner returns (bool) {
+  function finishMinting() onlyOwner public returns (bool) {
     mintingFinished = true;
     MintFinished();
     return true;
@@ -262,13 +265,13 @@ contract Crowdsale is Ownable {
     
     mapping(address => uint) public balances;
  
-    function Crowdsale() {
+    function Crowdsale() public  {
       multisig =  0x9af051AA703Ef781d307EC77D78510A75dC72200;
       restricted = 0x64C269245B0beeb8bfE21d19618315E5038829E5;
       restrictedPercent = 30;
-      rate = 1000;
+      rate = 1000000000000000000000;
       start = 1515600000;
-      period = 21;
+      period = 28;
       hardcap = 30000000;
       softcap = 600000;
     }
@@ -283,14 +286,14 @@ contract Crowdsale is Ownable {
       _;
     }
  
-    function refund() {
+    function refund() private {
       require(this.balance < softcap && now > start + period * 1 days);
       uint value = balances[msg.sender]; 
       balances[msg.sender] = 0; 
       msg.sender.transfer(value); 
     }
  
-    function finishMinting() public onlyOwner {
+    function finishMinting() private onlyOwner {
       if(this.balance > softcap) {
         multisig.transfer(this.balance);
         uint issuedTokenSupply = token.totalSupply();
@@ -300,7 +303,7 @@ contract Crowdsale is Ownable {
       }
     }
  
-   function createTokens() isUnderHardCap saleIsOn payable {
+   function createTokens() isUnderHardCap  public  saleIsOn payable {
       uint tokens = rate.mul(msg.value).div(1 ether);
       uint bonusTokens = 0;
       if(now < start + (period * 1 days).div(4)) {
